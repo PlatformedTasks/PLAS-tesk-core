@@ -18,24 +18,6 @@ from tesk_core.filer_class import Filer
 
 # import src.tesk_core.helm_client as helm_client
 import tesk_core.helm_client as helm_client
-# import helm_client
-# sys.argv.append("-n")
-# sys.argv.append("default")
-# sys.argv.append("-fn")
-# sys.argv.append("eu.gcr.io/tes-wes/filer")
-# sys.argv.append("-fv")
-# sys.argv.append("v0.10.0")
-# sys.argv.append("--localKubeConfig")
-#
-# #Environments taken from YAML
-# os.environ["TESK_FTP_USERNAME"] = "uftp"
-# os.environ["TESK_FTP_PASSWORD"] = "uftp"
-# os.environ["CONTAINER_BASE_PATH"] = "/transfer"
-# os.environ["HOST_BASE_PATH"] = "/tmp"
-# os.environ["TRANSFER_PVC_NAME"] = "transfer-pvc"
-# os.environ["FILER_BACKOFF_LIMIT"] = "1"
-# os.environ["EXECUTOR_BACKOFF_LIMIT"] = "1"
-# os.environ["DEPLOY_WITH_HELM"] = "1"
 
 created_jobs = []
 created_platform = []
@@ -43,6 +25,7 @@ poll_interval = 5
 task_volume_basename = 'task-volume'
 args = None
 logger = None
+
 
 def run_executor(executor, namespace, pvc=None):
     jobname = executor['metadata']['name']
@@ -70,10 +53,8 @@ def run_executor(executor, namespace, pvc=None):
         if status == 'Error':
             job.delete()
 
-        # print("PRIMA DI ELIMINARE L'EX ASPETTA 300 sec")
-        # time.sleep(300)
-        # print("AAA 79 #########")
         exit_cancelled('Got status ' + status)
+
 
 # TODO move this code to PVC class
 
@@ -223,7 +204,6 @@ def run_task(data, filer_name, filer_version):
         # filerjob.run_to_completion(poll_interval)
         status = filerjob.run_to_completion(poll_interval, check_cancelled, args.pod_timeout)
         if status != 'Complete':
-            # print("AAA 254 #########")
             exit_cancelled('Got status ' + status)
         else:
             pvc.delete()
@@ -236,46 +216,10 @@ def run_chart(executor, namespace, pvc=None):
     chart_version = executor["chart_version"]
 
     helm_client.helm_add_repo(chart_repo)
-    installed_platfrom = helm_client.helm_install(release_name=release_name, chart_name=chart_name, chart_version=chart_version,
-                             namespace=namespace)
-    if installed_platfrom.returncode == 0:
+    installed_platform = helm_client.helm_install(release_name=release_name, chart_name=chart_name, chart_version=chart_version,
+                                                  namespace=namespace)
+    if installed_platform and installed_platform.returncode == 0:
         created_platform.append(release_name)
-
-    # if not chart_repo:
-    #     print("TRY LOCAL HELM")
-    #     try:
-    #         with open(f"{chart_repo}/values.yaml") as f:
-    #             values_dict = yaml.safe_load(f)
-    #     except Exception as err:
-    #         print("Error opening Helm values file:", err)
-    #         sys.exit(0)
-    #
-    #     builder = ChartBuilder(ChartInfo(api_version="3.2.4", name=chart_name, version="1", app_version=chart_version, dependencies=[
-    #                 ChartDependency(name=chart_repo.split("/")[-1], version="1", repository=f"file:///{chart_repo}",
-    #                                 local_repo_name="local-repo", is_local=True), ], ), [],
-    #                            values=Values(values_dict), namespace=namespace)
-    #     # USE upgrade_chart instead of install_chart
-    #     # builder.upgrade_chart()
-    #     builder.install_chart({"dependency-update": None, "wait": None})
-    # else:
-    # print("TRY REPO HELM")
-    # helm_client.helm_add_repo(chart_repo)
-    # helm_client.helm_install(release_name=f"{task_name}-platform", chart_name=chart_name, chart_version=chart_version, namespace=namespace)
-
-    # builder = ChartBuilder(ChartInfo(api_version="3.2.4",
-    #                                  name=f"{task_name}-platform",
-    #                                  version="0.1.0",
-    #                                  app_version="0.15.0",
-    #                                  dependencies=[ChartDependency(
-    #                                      name=chart_name,
-    #                                      version=chart_version,
-    #                                      repository=chart_repo,
-    #                                      local_repo_name=f"taskmaster-repo", ), ],
-    #                                  ),
-    #                        [],
-    #                        namespace=namespace)
-    #
-    # builder.install_chart({"dependency-update": None, "wait": None})
 
 
 def newParser():
