@@ -1,0 +1,126 @@
+{
+    "outputs":
+    [
+        {
+            "name": "workdir",
+            "url": "ftp://10.0.0.10/files/out/horovod",
+            "path": "/horovod/examples/out",
+            "type": "DIRECTORY"
+        }
+    ],
+    "volumes":
+    [],
+    "resources":
+    {
+        "disk_gb": 0.01
+    },
+    "executors":
+    [
+        {
+            "chart_name": "horovod",
+            "kind": "helm",
+            "job":
+            {
+                "apiVersion": "batch/v1",
+                "kind": "Job",
+                "metadata":
+                {
+                    "annotations":
+                    {
+                        "tes-task-name": "helm-sha.cwl.yml"
+                    },
+                    "labels":
+                    {
+                        "job-type": "executor",
+                        "taskmaster-name": "task-e4954bf1",
+                        "executor-no": "0",
+                        "creator-user-id": "anonymousUser"
+                    },
+                    "name": "task-e4954bf1-ex-00"
+                },
+                "spec":
+                {
+                    "template":
+                    {
+                        "metadata":
+                        {
+                            "name": "task-e4954bf1-ex-00"
+                        },
+                        "spec":
+                        {
+                            "containers":
+                            [
+                                {
+                                    "command":
+                                    [
+                                        "/bin/sh",
+                                        "-c",
+                                        "mkdir /root/.ssh; \necho \"-----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEAucUppLn15Tq8MUJWRKtvYPMBF9QD6UsHsbzeCXjQrLnnFGJq\nJj0x6l06lOLxINgHe65dX2U6zPMA145al2kIvjrIf/3+WVsIJ81RM1fGP5WB9X6y\nbnuwJsP51g6OmbYYmqSXp+he4wpbO0yL/8+wpJDX6dlJCbn832GAPqauv2yMCHAz\nkHxtrjEW8O5CSQrNtuIUAaI7es9oL95ZEWo126Ya0uKRU+HuIXJSwp7DEvLwftnT\n1x7W+jmyMTZCz7LOUnUm8COFTdIa3qBE0CjYXDNF0gpAmaJC/FSVhOtFDb1dWDCx\nW+YHmTYapRWBwWc8KKgfnyOJm2d66Xi8G9p4oQIDAQABAoIBAQCOgvZjbFV7OQfO\nMjnEDFAxa7pW8Ure2bRZYa5kTc6n8yWWubj9BM0aIdMjDMY2kAONmkH/QMVPHMx0\nkLxmkykl5iqSJePN4Mvs3NGCNb/cX3GHR17S6whDdOxgjmJPASb223WMVfMU8Yjz\ngNGVuVqlpIg+2XXyhD+9jiq35V8BcZBz8EoMGi4Xmp3c8Xx77grxJsObKPo4ye0j\nBkrWyG/gTJPYCfqQxe0LgXoqU+Nw5wvNQWJQdFGPlXyFIB5VOiSLLnKRpaYxKNxu\nIK+8Km8JmN0FWrgU+Yn0jSeY2a5wkswbF6Q9Q26JbxSY+gt53fJbQm7DF9S5CgZ9\nN4KlSq3RAoGBAOywimD7AJxlqqBeSZyzy5gxQUZNKZABLYe4uen9iWR40EUp8BfS\nPaEHxgH/Z0SAqBAG3NqI9DdKh4YHAn2phD3ecVbroGFqNzr8jcCZWiKJKli/f2YJ\ns3Yv0AvMpDczQCc1OZqGOTPzwDjgt9mI78tJcZwPXeez/fAjlC2qA957AoGBAMjt\nII10Uvgn6cSabUfNsWU6GLQdDk2nMZ8Pbv12PKRJ3MJEUnQn9fx6Z/5/uoKPOYUj\nlDSLlOlwEpJbJGps1aabOkQ8CHzMsj+YcBiRMA0Jw1ZM5ZV/UzJ7yQNTC1HUNagf\nzzu3Oi2/gJry3zaCRXpl1qyYMOOVvqPj3RpDk6iTAoGAR2sRpie2zHpE3PT2Y0lB\nMqASISNhWilw0pYjyv4MuftWZLg90QJIRFGzJqEpSNtFWuinNW3DuvdLI170GnTP\nCVgYfPDGSP6iwbK5FxduwiL/Wx4VU/WzaAMPVLAgEOPvBKWjxwOfORTguIjeEM6o\nBIAZvsxIOoTuJ8qkiI7XcgcCgYEAoMOCeUvqmt2soH8DEyGUX68lVu+soxs0i9UY\ndDqneLgUp2dtJb1Xh4UVMj9WpuIcHtgB3C0Wn9TpNysvruuX4u9upmv2SoypzlKU\n1kNM1BHMtn9ebshqdAkxI7TNaNLHf9a7xEbtiO8h4liTmpSPLMjRBFXdQCtvVsiZ\n/0q0mXsCgYAMMwfO+l4ddTCPeWWkpirE6s4bvRxOPrz4itHQgsIOfrYc4Eo9zakh\nz3vNh2SgKougC4OA8JI8C9SfOfnWMCFQRKUySU9TcsVcEQ3ClbynX7H/Dh7m/lZL\nI+3YFlHgP891HDUHbq+ZBsj9S0TN4wv8NgYLC6vQxqc5+NhMefjRWA==\n-----END RSA PRIVATE KEY-----\" >> /root/.ssh/id_rsa;\necho \"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC5xSmkufXlOrwxQlZEq29g8wEX1APpSwexvN4JeNCsuecUYmomPTHqXTqU4vEg2Ad7rl1fZTrM8wDXjlqXaQi+Osh//f5ZWwgnzVEzV8Y/lYH1frJue7Amw/nWDo6ZthiapJen6F7jCls7TIv/z7CkkNfp2UkJufzfYYA+pq6/bIwIcDOQfG2uMRbw7kJJCs224hQBojt6z2gv3lkRajXbphrS4pFT4e4hclLCnsMS8vB+2dPXHtb6ObIxNkLPss5SdSbwI4VN0hreoETQKNhcM0XSCkCZokL8VJWE60UNvV1YMLFb5geZNhqlFYHBZzwoqB+fI4mbZ3rpeLwb2nih vagrant@master-node\" > /root/.ssh/authorized_keys; chmod 400 /root/.ssh/id_rsa; mpirun -np 2 --hostfile /tmp/generated/hostfile --mca orte_keep_fqdn_hostnames t --allow-run-as-root --display-map --tag-output --timestamp-output sh -c 'python /horovod/examples/train-easy.py' > results.txt"
+                                    ],
+                                    "env":
+                                    [
+                                        {
+                                            "name": "HOME",
+                                            "value": "/home/luca/GEANT/cwl-tes/tmp3r9nq6zr"
+                                        },
+                                        {
+                                            "name": "TMPDIR",
+                                            "value": "/tmp/tmp4vm5w2ld"
+                                        }
+                                    ],
+                                    "image": "horovod/horovod:debug",
+                                    "name": "task-e4954bf1-ex-00",
+                                    "resources":
+                                    {
+                                        "requests":
+                                        {
+                                            "memory": "0.004G",
+                                            "cpu": "0"
+                                        }
+                                    },
+                                    "workingDir": "/horovod/examples/out/",
+                                    "volumeMounts": [
+                                        {
+                                            "mountPath": "/tmp/generated/",
+                                            "name": "task-e4954bf1-platform-horovod-cm"
+                                        }
+                                    ]
+                                }
+                            ],
+                            "restartPolicy": "Never",
+                            "volumes":
+                            [
+                                {
+                                    "configMap": {
+                                        "defaultMode": 420,
+                                        "items": [
+                                            {
+                                                "key": "hostfile.config",
+                                                "mode": 438,
+                                                "path": "hostfile"
+                                            }
+                                        ],
+                                        "name": "task-e4954bf1-platform-horovod"
+                                    },
+                                    "name": "task-e4954bf1-platform-horovod-cm"
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "chart_repo": "https://lucapetrucci.github.io/horovod_chart/charts",
+            "chart_version": "v3.0.0"
+        }
+    ],
+    "inputs":
+    [
+        {
+            "name": "input",
+            "description": "cwl_input:input",
+            "url": "ftp://10.0.0.10/files/input.txt",
+            "path": "/tmp/tmp30y3sai2/stg93a5428a-c565-4c02-8081-344d97f35bd5/input.txt",
+            "type": "FILE"
+        }
+    ]
+}

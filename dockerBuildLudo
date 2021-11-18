@@ -1,0 +1,3 @@
+echo "TI SEI RICORDATO DI COMMENTARE LE CONFIG DI KUBE IN LOCALE???????????????????"
+docker build -t "ludovicofunari/taskmaster:latest" -f "containers/taskmaster.Dockerfile" .
+docker push "ludovicofunari/taskmaster:latest"
