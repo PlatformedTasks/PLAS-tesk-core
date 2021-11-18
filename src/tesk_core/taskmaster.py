@@ -16,8 +16,8 @@ from tesk_core.job import Job
 from tesk_core.pvc import PVC
 from tesk_core.filer_class import Filer
 
-import src.tesk_core.helm_client as helm_client
-# import tesk_core.helm_client as helm_client
+# import src.tesk_core.helm_client as helm_client
+import tesk_core.helm_client as helm_client
 # import helm_client
 # sys.argv.append("-n")
 # sys.argv.append("default")
@@ -43,6 +43,7 @@ poll_interval = 5
 task_volume_basename = 'task-volume'
 args = None
 logger = None
+
 
 def run_executor(executor, namespace, pvc=None):
     jobname = executor['metadata']['name']
@@ -70,10 +71,8 @@ def run_executor(executor, namespace, pvc=None):
         if status == 'Error':
             job.delete()
 
-        # print("PRIMA DI ELIMINARE L'EX ASPETTA 300 sec")
-        # time.sleep(300)
-        # print("AAA 79 #########")
         exit_cancelled('Got status ' + status)
+
 
 # TODO move this code to PVC class
 
@@ -197,18 +196,24 @@ def run_task(data, filer_name, filer_version):
             run_executor(executor, args.namespace, pvc)
         elif executor['kind'] == "helm":
             run_chart(executor, args.namespace, pvc)
+            task_name
             # WAIT UNTIL PLATFORM DEPLOYED THEN RUN JOB
-            print("ADDING EXECUTOR CONFIGMAP")
             mounts = executor['job']['spec']['template']['spec']['containers'][0].setdefault('volumeMounts', [])
             mounts.extend([{"name": "executor-volume", "mountPath": "/tmp/generated"}])
             volumes = executor['job']['spec']['template']['spec'].setdefault('volumes', [])
-            volumes.extend([{"name": "executor-volume", "configMap": {"defaultMode": 420, "items": [
-                {"key": "hostfile.config", "mode": 438, "path": "hostfile"}], "name": "executor-volume-cm"}}])
+            volumes.extend([{"name": "executor-volume", "configMap": {"name": "executor-volume-cm", "defaultMode": 420, "items": [
+                {"key": "hostfile.config", "mode": 438, "path": "hostfile"}]}}])
+            print("Added custom configMap for the executor.")
+            logging.debug("Added custom configMap for the executor.")
 
             run_executor(executor["job"], args.namespace, pvc)
 
     # run executors
     logging.debug("Finished running executors")
+
+    if created_platform:
+        for platform in created_platform:
+            helm_client.helm_uninstall(platform)
 
     # upload files and delete pvc
     if data['volumes'] or data['inputs'] or data['outputs']:
@@ -223,7 +228,6 @@ def run_task(data, filer_name, filer_version):
         # filerjob.run_to_completion(poll_interval)
         status = filerjob.run_to_completion(poll_interval, check_cancelled, args.pod_timeout)
         if status != 'Complete':
-            # print("AAA 254 #########")
             exit_cancelled('Got status ' + status)
         else:
             pvc.delete()
@@ -236,46 +240,10 @@ def run_chart(executor, namespace, pvc=None):
     chart_version = executor["chart_version"]
 
     helm_client.helm_add_repo(chart_repo)
-    installed_platfrom = helm_client.helm_install(release_name=release_name, chart_name=chart_name, chart_version=chart_version,
-                             namespace=namespace)
-    if installed_platfrom.returncode == 0:
+    installed_platform = helm_client.helm_install(release_name=release_name, chart_name=chart_name, chart_version=chart_version,
+                                                  namespace=namespace)
+    if installed_platform and installed_platform.returncode == 0:
         created_platform.append(release_name)
-
-    # if not chart_repo:
-    #     print("TRY LOCAL HELM")
-    #     try:
-    #         with open(f"{chart_repo}/values.yaml") as f:
-    #             values_dict = yaml.safe_load(f)
-    #     except Exception as err:
-    #         print("Error opening Helm values file:", err)
-    #         sys.exit(0)
-    #
-    #     builder = ChartBuilder(ChartInfo(api_version="3.2.4", name=chart_name, version="1", app_version=chart_version, dependencies=[
-    #                 ChartDependency(name=chart_repo.split("/")[-1], version="1", repository=f"file:///{chart_repo}",
-    #                                 local_repo_name="local-repo", is_local=True), ], ), [],
-    #                            values=Values(values_dict), namespace=namespace)
-    #     # USE upgrade_chart instead of install_chart
-    #     # builder.upgrade_chart()
-    #     builder.install_chart({"dependency-update": None, "wait": None})
-    # else:
-    # print("TRY REPO HELM")
-    # helm_client.helm_add_repo(chart_repo)
-    # helm_client.helm_install(release_name=f"{task_name}-platform", chart_name=chart_name, chart_version=chart_version, namespace=namespace)
-
-    # builder = ChartBuilder(ChartInfo(api_version="3.2.4",
-    #                                  name=f"{task_name}-platform",
-    #                                  version="0.1.0",
-    #                                  app_version="0.15.0",
-    #                                  dependencies=[ChartDependency(
-    #                                      name=chart_name,
-    #                                      version=chart_version,
-    #                                      repository=chart_repo,
-    #                                      local_repo_name=f"taskmaster-repo", ), ],
-    #                                  ),
-    #                        [],
-    #                        namespace=namespace)
-    #
-    # builder.install_chart({"dependency-update": None, "wait": None})
 
 
 def newParser():
@@ -401,7 +369,6 @@ def clean_on_interrupt():
 
     for platform in created_platform:
         helm_client.helm_uninstall(platform)
-
 
 
 def exit_cancelled(reason='Unknown reason'):
