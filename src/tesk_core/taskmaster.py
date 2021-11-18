@@ -16,8 +16,8 @@ from tesk_core.job import Job
 from tesk_core.pvc import PVC
 from tesk_core.filer_class import Filer
 
-import src.tesk_core.helm_client as helm_client
-# import tesk_core.helm_client as helm_client
+# import src.tesk_core.helm_client as helm_client
+import tesk_core.helm_client as helm_client
 # import helm_client
 # sys.argv.append("-n")
 # sys.argv.append("default")
