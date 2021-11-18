@@ -179,17 +179,22 @@ def run_task(data, filer_name, filer_version):
         elif executor['kind'] == "helm":
             run_chart(executor, args.namespace, pvc)
             # WAIT UNTIL PLATFORM DEPLOYED THEN RUN JOB
-            print("ADDING EXECUTOR CONFIGMAP")
             mounts = executor['job']['spec']['template']['spec']['containers'][0].setdefault('volumeMounts', [])
             mounts.extend([{"name": "executor-volume", "mountPath": "/tmp/generated"}])
             volumes = executor['job']['spec']['template']['spec'].setdefault('volumes', [])
-            volumes.extend([{"name": "executor-volume", "configMap": {"defaultMode": 420, "items": [
-                {"key": "hostfile.config", "mode": 438, "path": "hostfile"}], "name": "executor-volume-cm"}}])
+            volumes.extend([{"name": "executor-volume", "configMap": {"name": f"{task_name}-platform-cm", "defaultMode": 420, "items": [
+                {"key": "hostfile.config", "mode": 438, "path": "hostfile"}]}}])
+            print("Added custom configMap for the executor.")
+            logging.debug("Added custom configMap for the executor.")
 
             run_executor(executor["job"], args.namespace, pvc)
 
     # run executors
     logging.debug("Finished running executors")
+
+    if created_platform:
+        for platform in created_platform:
+            helm_client.helm_uninstall(platform)
 
     # upload files and delete pvc
     if data['volumes'] or data['inputs'] or data['outputs']:
@@ -345,7 +350,6 @@ def clean_on_interrupt():
 
     for platform in created_platform:
         helm_client.helm_uninstall(platform)
-
 
 
 def exit_cancelled(reason='Unknown reason'):
