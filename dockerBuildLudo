@@ -1,3 +1,4 @@
-echo "TI SEI RICORDATO DI COMMENTARE LE CONFIG DI KUBE IN LOCALE???????????????????"
+echo "################# BUILD DOCKER #################"
 docker build -t "ludovicofunari/taskmaster:latest" -f "containers/taskmaster.Dockerfile" .
+echo "################# PUSH DOCKER #################"
 docker push "ludovicofunari/taskmaster:latest"

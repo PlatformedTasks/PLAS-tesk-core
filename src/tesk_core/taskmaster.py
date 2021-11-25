@@ -18,24 +18,6 @@ from tesk_core.filer_class import Filer
 
 # import src.tesk_core.helm_client as helm_client
 import tesk_core.helm_client as helm_client
-# import helm_client
-# sys.argv.append("-n")
-# sys.argv.append("default")
-# sys.argv.append("-fn")
-# sys.argv.append("eu.gcr.io/tes-wes/filer")
-# sys.argv.append("-fv")
-# sys.argv.append("v0.10.0")
-# sys.argv.append("--localKubeConfig")
-#
-# #Environments taken from YAML
-# os.environ["TESK_FTP_USERNAME"] = "uftp"
-# os.environ["TESK_FTP_PASSWORD"] = "uftp"
-# os.environ["CONTAINER_BASE_PATH"] = "/transfer"
-# os.environ["HOST_BASE_PATH"] = "/tmp"
-# os.environ["TRANSFER_PVC_NAME"] = "transfer-pvc"
-# os.environ["FILER_BACKOFF_LIMIT"] = "1"
-# os.environ["EXECUTOR_BACKOFF_LIMIT"] = "1"
-# os.environ["DEPLOY_WITH_HELM"] = "1"
 
 created_jobs = []
 created_platform = []
@@ -196,13 +178,12 @@ def run_task(data, filer_name, filer_version):
             run_executor(executor, args.namespace, pvc)
         elif executor['kind'] == "helm":
             run_chart(executor, args.namespace, pvc)
-            task_name
             # WAIT UNTIL PLATFORM DEPLOYED THEN RUN JOB
             mounts = executor['job']['spec']['template']['spec']['containers'][0].setdefault('volumeMounts', [])
             mounts.extend([{"name": "executor-volume", "mountPath": "/tmp/generated"}])
             volumes = executor['job']['spec']['template']['spec'].setdefault('volumes', [])
-            volumes.extend([{"name": "executor-volume", "configMap": {"name": "executor-volume-cm", "defaultMode": 420, "items": [
-                {"key": "hostfile.config", "mode": 438, "path": "hostfile"}]}}])
+            volumes.extend([{"name": "executor-volume", "configMap": {"name": f"{task_name}-platform-{data['executors'][0]['chart_name']}-cm", "defaultMode": 420, "items": [
+                {"key": "executor.config", "path": "executor.config"}]}}])
             print("Added custom configMap for the executor.")
             logging.debug("Added custom configMap for the executor.")
 
