@@ -182,8 +182,13 @@ def run_task(data, filer_name, filer_version):
             mounts = executor['job']['spec']['template']['spec']['containers'][0].setdefault('volumeMounts', [])
             mounts.extend([{"name": "executor-volume", "mountPath": "/tmp/generated"}])
             volumes = executor['job']['spec']['template']['spec'].setdefault('volumes', [])
+<<<<<<< HEAD
             volumes.extend([{"name": "executor-volume", "configMap": {"name": f"{task_name}-platform-{data['executors'][0]['chart_name']}-cm", "defaultMode": 420, "items": [
                 {"key": "executor.config", "path": "executor.config"}]}}])
+=======
+            volumes.extend([{"name": "executor-volume", "configMap": {"name": f"{task_name}-platform-cm", "defaultMode": 420, "items": [
+                {"key": "hostfile.config", "mode": 438, "path": "hostfile"}]}}])
+>>>>>>> 49e79092fc56052b5fb09cc6a25670c343eb447f
             print("Added custom configMap for the executor.")
             logging.debug("Added custom configMap for the executor.")
 
