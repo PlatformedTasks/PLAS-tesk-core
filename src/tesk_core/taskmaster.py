@@ -21,6 +21,7 @@ import tesk_core.helm_client as helm_client
 
 created_jobs = []
 created_platform = []
+helm_values = list()
 poll_interval = 5
 task_volume_basename = 'task-volume'
 args = None
@@ -28,6 +29,11 @@ logger = None
 
 
 def run_executor(executor, namespace, pvc=None):
+    # remove 'transfer-volume' volumeMount only for the executor
+    result = next((volumemount for volumemount in pvc.volume_mounts if volumemount['name'] == 'transfer-volume'), None)
+    if result:
+        pvc.volume_mounts.remove(result)
+
     jobname = executor['metadata']['name']
     spec = executor['spec']['template']['spec']
 
@@ -58,14 +64,14 @@ def run_executor(executor, namespace, pvc=None):
 
 # TODO move this code to PVC class
 
-def append_mount(volume_mounts, name, path, pvc):
+def append_mount(volume_mounts, name, path, pvc, transfer=False):
     # Checks all mount paths in volume_mounts if the path given is already in
     # there
     duplicate = next(
         (mount for mount in volume_mounts if mount['mountPath'] == path),
         None)
     # If not, add mount path
-    if duplicate is None:
+    if duplicate is None and not transfer:
         subpath = pvc.get_subpath()
         logger.debug(' '.join(
             ['appending' + name +
@@ -98,8 +104,12 @@ def generate_mounts(data, pvc):
     # gather other paths that need to be mounted from inputs/outputs FILE and
     # DIRECTORY entries
     for aninput in data['inputs']:
-        dirnm = dirname(aninput)
-        append_mount(volume_mounts, volume_name, dirnm, pvc)
+        if 'tmConfig' in aninput.keys() and aninput['tmConfig']:
+            dirnm = aninput['path'].split('/')[-2]
+            append_mount(volume_mounts, 'transfer-volume', dirnm, pvc, transfer=True)
+        else:
+            dirnm = dirname(aninput)
+            append_mount(volume_mounts, volume_name, dirnm, pvc)
 
     for anoutput in data['outputs']:
         dirnm = dirname(anoutput)
@@ -143,6 +153,8 @@ def init_pvc(data, filer):
     created_jobs.append(filerjob)
     # filerjob.run_to_completion(poll_interval)
     status = filerjob.run_to_completion(poll_interval, check_cancelled, args.pod_timeout)
+
+
     if status != 'Complete':
         # print("AAA 200 #########")
         exit_cancelled('Got status ' + status)
@@ -173,17 +185,21 @@ def run_task(data, filer_name, filer_version):
 
         pvc = init_pvc(data, filer)
 
+        for input in data['inputs']:
+            if 'tmConfig' in input.keys() and input['tmConfig']:
+                helm_values.append(input['path'])
+
     for executor in data['executors']:
         if executor['kind'] == "Job":
             run_executor(executor, args.namespace, pvc)
         elif executor['kind'] == "helm":
-            run_chart(executor, args.namespace, pvc)
+            run_chart(executor, args.namespace, helm_values, pvc)
             # WAIT UNTIL PLATFORM DEPLOYED THEN RUN JOB
             mounts = executor['job']['spec']['template']['spec']['containers'][0].setdefault('volumeMounts', [])
             mounts.extend([{"name": "executor-volume", "mountPath": "/tmp/generated"}])
             volumes = executor['job']['spec']['template']['spec'].setdefault('volumes', [])
             volumes.extend([{"name": "executor-volume", "configMap": {"name": f"{task_name}-platform-{data['executors'][0]['chart_name']}-cm", "defaultMode": 420, "items": [
-                {"key": "executor.config", "path": "executor.config"}]}}])
+                {"key": "hostfile.config", "mode": 438, "path": "hostfile"}]}}])
             print("Added custom configMap for the executor.")
             logging.debug("Added custom configMap for the executor.")
 
@@ -214,17 +230,30 @@ def run_task(data, filer_name, filer_version):
             pvc.delete()
 
 
-def run_chart(executor, namespace, pvc=None):
+def run_chart(executor, namespace, helm_values, pvc=None):
     release_name = f"{executor['job']['metadata']['labels']['taskmaster-name']}-platform"
     chart_name = executor["chart_name"]
     chart_repo = executor["chart_repo"]
     chart_version = executor["chart_version"]
 
     helm_client.helm_add_repo(chart_repo)
-    installed_platform = helm_client.helm_install(release_name=release_name, chart_name=chart_name, chart_version=chart_version,
-                                                  namespace=namespace)
+
+    print("DORMO 5 ----------")
+    time.sleep(5)
+    # for x in range(10):
+    #     if len(helm_values) == 0 or not os.path.exists(helm_values[0]):
+    #         print("%d - FILE NON ESISTE ASPETTO" %x)
+    #         time.sleep(5)
+    #     else:
+    #         break
+
+    installed_platform = helm_client.helm_install(release_name=release_name, chart_name=chart_name,
+                                                  chart_version=chart_version, chart_values=helm_values, namespace=namespace)
+
     if installed_platform and installed_platform.returncode == 0:
         created_platform.append(release_name)
+    else:
+        exit_cancelled("Error installing helm.")
 
 
 def newParser():
@@ -345,11 +374,11 @@ def main(argv=None):
 def clean_on_interrupt():
     logger.debug('Caught interrupt signal, deleting jobs and pvc')
 
-    for job in created_jobs:
-        job.delete()
-
     for platform in created_platform:
         helm_client.helm_uninstall(platform)
+
+    for job in created_jobs:
+        job.delete()
 
 
 def exit_cancelled(reason='Unknown reason'):

@@ -27,7 +27,7 @@ COPY containers/get_helm.sh .
 RUN chmod 700 get_helm.sh
 RUN ./get_helm.sh
 
-RUN adduser -S taskmaster
-USER taskmaster
+#RUN adduser -S taskmaster
+#USER taskmaster
 
 ENTRYPOINT ["taskmaster"]

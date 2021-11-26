@@ -24,6 +24,9 @@ class Job:
         logging.debug(pprint(self.body))
         self.timeout = pod_timeout
         try:
+            print("#############")
+            print(self.body)
+            print("#############")
             self.bv1.create_namespaced_job(self.namespace, self.body)
         except ApiException as ex:
             if ex.status == 409:

@@ -16,11 +16,24 @@ def helm_add_repo(repo_url):
         print(err)
 
 
-def helm_install(release_name, chart_name, chart_version, namespace="default"):
+def helm_install(release_name, chart_name, chart_version, chart_values, namespace="default"):
     try:
         chart = f"{repo_name}/{chart_name}"
         print(f"Installing '{release_name}' from '{chart}' in namespace '{namespace}'...")
-        release_install = subprocess.run(['helm', 'install', release_name, chart, f'--namespace={namespace}', f'--version={chart_version}', '--wait'], capture_output=True, text=True, check=True)
+
+        helm_command = ['helm', 'install', release_name, chart, f'--namespace={namespace}', '--wait']
+
+        if chart_version:
+            helm_command.append(f'--version={chart_version}')
+        if chart_values:
+            for chart_file in chart_values:
+                helm_command.append(f'-f={str(chart_file)}')
+
+        print("--------")
+        print(helm_command)
+        print("--------")
+
+        release_install = subprocess.run(helm_command, capture_output=True, text=True, check=True)
         print(release_install.stdout)
         return release_install
     except subprocess.CalledProcessError as err:
