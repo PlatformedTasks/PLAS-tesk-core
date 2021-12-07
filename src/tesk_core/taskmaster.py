@@ -104,7 +104,7 @@ def generate_mounts(data, pvc):
     # gather other paths that need to be mounted from inputs/outputs FILE and
     # DIRECTORY entries
     for aninput in data['inputs']:
-        if 'tmConfig' in aninput.keys() and aninput['tmConfig']:
+        if 'tmconfig' in aninput.keys() and aninput['tmconfig']:
             dirnm = aninput['path'].split('/')[-2]
             append_mount(volume_mounts, 'transfer-volume', dirnm, pvc, transfer=True)
         else:
@@ -186,7 +186,7 @@ def run_task(data, filer_name, filer_version):
         pvc = init_pvc(data, filer)
 
         for input in data['inputs']:
-            if 'tmConfig' in input.keys() and input['tmConfig']:
+            if 'tmconfig' in input.keys() and input['tmconfig']:
                 helm_values.append(input['path'])
 
     for executor in data['executors']:
@@ -197,9 +197,20 @@ def run_task(data, filer_name, filer_version):
             # WAIT UNTIL PLATFORM DEPLOYED THEN RUN JOB
             mounts = executor['job']['spec']['template']['spec']['containers'][0].setdefault('volumeMounts', [])
             mounts.extend([{"name": "executor-volume", "mountPath": "/tmp/generated"}])
+                           # {"name": "executor-init", "mountPath": "/work-dir"}])
             volumes = executor['job']['spec']['template']['spec'].setdefault('volumes', [])
-            volumes.extend([{"name": "executor-volume", "configMap": {"name": f"{task_name}-platform-{data['executors'][0]['chart_name']}-cm", "defaultMode": 420, "items": [
-                {"key": "hostfile.config", "mode": 438, "path": "hostfile"}]}}])
+            volumes.extend([{"name": "executor-volume", "configMap": {"name": f"{task_name}-platform-{data['executors'][0]['chart_name']}-cm", "defaultMode": 420,
+                                                                      "items": [
+                                                                          {"key": "hostfile.config", "mode": 438, "path": "hostfile"},
+                                                                          {"key": "executor.init", "mode": 438, "path": "executor.init"}]}}])
+                            #{"name": "executor-init", "emptyDir": {}}])
+            # ADD initContainer
+            # initcontainer = {"name": "executor-init", "image": "busybox:1.28", "command": ['sh', '-c', 'echo CIAO > /work-dir/executor.txt'],
+            #                  "volumeMounts": [{"mountPath": "/work-dir", "name": "executor-init"}]}
+            initcontainer = {"name": "executor-volume", "image": "busybox:1.28", "command": ['sh', '-c', 'echo CIAO > /horovod/examples/executor.txt'],
+                             "volumeMounts": [{"mountPath": "/tmp/generated", "name": "executor-volume"}]}
+            # > /work-dir/executor-config/initcontainer']}
+            executor['job']['spec']['template']['spec']['initContainers'] = [initcontainer]
             print("Added custom configMap for the executor.")
             logging.debug("Added custom configMap for the executor.")
 
@@ -238,8 +249,8 @@ def run_chart(executor, namespace, helm_values, pvc=None):
 
     helm_client.helm_add_repo(chart_repo)
 
-    print("DORMO 5 ----------")
-    time.sleep(5)
+    # print("DORMO 5 ----------")
+    # time.sleep(5)
     # for x in range(10):
     #     if len(helm_values) == 0 or not os.path.exists(helm_values[0]):
     #         print("%d - FILE NON ESISTE ASPETTO" %x)

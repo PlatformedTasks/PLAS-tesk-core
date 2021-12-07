@@ -98,20 +98,6 @@
     ],
     "inputs":
     [
-        {
-            "name": "input",
-            "description": "cwl_input:input",
-            "url": "ftp://10.0.0.10/files/input.txt",
-            "path": "/var/lib/cwl/stg84dc51f6-37de-486a-b1de-43b5a96cd8b3/input.txt",
-            "type": "FILE"
-        },
-        {
-            "name": "input2",
-            "description": "cwl_input:input",
-            "url": "ftp://10.0.0.10/files/horovod-values.yaml",
-            "path": "/transfer/horovod123/horovod-values.yaml",
-            "type": "FILE",
-            "tmConfig": true
-        }
+
     ]
 }
