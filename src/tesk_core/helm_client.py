@@ -29,10 +29,6 @@ def helm_install(release_name, chart_name, chart_version, chart_values, namespac
             for chart_file in chart_values:
                 helm_command.append(f'-f={str(chart_file)}')
 
-        print("--------")
-        print(helm_command)
-        print("--------")
-
         release_install = subprocess.run(helm_command, capture_output=True, text=True, check=True)
         print(release_install.stdout)
         return release_install
@@ -51,14 +47,3 @@ def helm_uninstall(release_name, namespace="default"):
         print(err.stderr)
     except Exception as err:
         print(err)
-
-
-# repo_url = "https://lucapetrucci.github.io/horovod_chart/charts"
-#
-# helm_add_repo(repo_url)
-# helm_install(release_name="lucaciao", chart_name="horovod", chart_version="v3.0.0", namespace="default")
-#
-# print("Go to sleep for 5...")
-# time.sleep(5)
-#
-# helm_uninstall(release_name="lucaciao")

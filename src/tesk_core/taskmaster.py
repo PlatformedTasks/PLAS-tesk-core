@@ -156,7 +156,6 @@ def init_pvc(data, filer):
 
 
     if status != 'Complete':
-        # print("AAA 200 #########")
         exit_cancelled('Got status ' + status)
 
     return pvc
@@ -197,20 +196,12 @@ def run_task(data, filer_name, filer_version):
             # WAIT UNTIL PLATFORM DEPLOYED THEN RUN JOB
             mounts = executor['job']['spec']['template']['spec']['containers'][0].setdefault('volumeMounts', [])
             mounts.extend([{"name": "executor-volume", "mountPath": "/tmp/generated"}])
-                           # {"name": "executor-init", "mountPath": "/work-dir"}])
             volumes = executor['job']['spec']['template']['spec'].setdefault('volumes', [])
-            volumes.extend([{"name": "executor-volume", "configMap": {"name": f"{task_name}-platform-{data['executors'][0]['chart_name']}-cm", "defaultMode": 420,
-                                                                      "items": [
-                                                                          {"key": "hostfile.config", "mode": 438, "path": "hostfile"},
-                                                                          {"key": "executor.init", "mode": 438, "path": "executor.init"}]}}])
-                            #{"name": "executor-init", "emptyDir": {}}])
-            # ADD initContainer
-            # initcontainer = {"name": "executor-init", "image": "busybox:1.28", "command": ['sh', '-c', 'echo CIAO > /work-dir/executor.txt'],
-            #                  "volumeMounts": [{"mountPath": "/work-dir", "name": "executor-init"}]}
-            initcontainer = {"name": "executor-volume", "image": "busybox:1.28", "command": ['sh', '-c', 'echo CIAO > /horovod/examples/executor.txt'],
-                             "volumeMounts": [{"mountPath": "/tmp/generated", "name": "executor-volume"}]}
-            # > /work-dir/executor-config/initcontainer']}
-            executor['job']['spec']['template']['spec']['initContainers'] = [initcontainer]
+            volumes.extend([{"name": "executor-volume", "configMap": {"name": f"{task_name}-platform-{data['executors'][0]['chart_name']}-cm", 
+                                                                        "defaultMode": 420,
+                                                                        "items": [
+                                                                            {"key": "hostfile.config", "mode": 438, "path": "hostfile"},
+                                                                            {"key": "executor.init", "mode": 438, "path": "executor.init"}]}}])
             print("Added custom configMap for the executor.")
             logging.debug("Added custom configMap for the executor.")
 
@@ -248,15 +239,6 @@ def run_chart(executor, namespace, helm_values, pvc=None):
     chart_version = executor["chart_version"]
 
     helm_client.helm_add_repo(chart_repo)
-
-    # print("DORMO 5 ----------")
-    # time.sleep(5)
-    # for x in range(10):
-    #     if len(helm_values) == 0 or not os.path.exists(helm_values[0]):
-    #         print("%d - FILE NON ESISTE ASPETTO" %x)
-    #         time.sleep(5)
-    #     else:
-    #         break
 
     installed_platform = helm_client.helm_install(release_name=release_name, chart_name=chart_name,
                                                   chart_version=chart_version, chart_values=helm_values, namespace=namespace)
