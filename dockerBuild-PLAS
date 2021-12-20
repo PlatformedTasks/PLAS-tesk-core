@@ -2,7 +2,7 @@
 
 echo "################# BUILD DOCKER #################"
 
-docker build -t "platformedtasks/plas-taskmaster:latest" -f "containers/taskmaster-plas.Dockerfile" .
+docker build -t "platformedtasks/plas-taskmaster:latest" -f "containers/plas-taskmaster.Dockerfile" .
 
 echo "################# PUSH DOCKER #################"
 docker push "platformedtasks/plas-taskmaster:latest"

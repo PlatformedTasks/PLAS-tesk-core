@@ -18,9 +18,16 @@ FROM alpine:3.10
 RUN apk add --no-cache python3
 
 COPY --from=builder /app/dist/tesk*.whl /root/
+COPY --from=builder /app/dist/tesk*.whl /root/
 RUN python3 -m pip install --disable-pip-version-check --no-cache-dir /root/tesk*.whl
+RUN pip3 install avionix
 
-RUN adduser -S taskmaster
-USER taskmaster
+WORKDIR /home/taskmaster
+COPY containers/get_helm.sh .
+RUN chmod 700 get_helm.sh
+RUN ./get_helm.sh
+
+#RUN adduser -S taskmaster
+#USER taskmaster
 
 ENTRYPOINT ["taskmaster"]
