@@ -1,4 +1,0 @@
-echo "################# BUILD DOCKER #################"
-docker build -t "ludovicofunari/taskmaster:latest" -f "containers/taskmaster.Dockerfile" .
-echo "################# PUSH DOCKER #################"
-docker push "ludovicofunari/taskmaster:latest"

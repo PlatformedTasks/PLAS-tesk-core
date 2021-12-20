@@ -1,0 +1,8 @@
+#!/bin/sh
+
+echo "################# BUILD DOCKER #################"
+
+docker build -t "platformedtasks/plas-taskmaster:latest" -f "containers/taskmaster-plas.Dockerfile" .
+
+echo "################# PUSH DOCKER #################"
+docker push "platformedtasks/plas-taskmaster:latest"
