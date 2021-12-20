@@ -200,7 +200,7 @@ def run_task(data, filer_name, filer_version):
             volumes.extend([{"name": "executor-volume", "configMap": {"name": f"{task_name}-platform-{data['executors'][0]['chart_name']}-cm", 
                                                                         "defaultMode": 420,
                                                                         "items": [
-                                                                            {"key": "hostfile.config", "mode": 438, "path": "hostfile"},
+                                                                            {"key": "executor.config", "mode": 438, "path": "executor.config"},
                                                                             {"key": "executor.init", "mode": 438, "path": "executor.init"}]}}])
             print("Added custom configMap for the executor.")
             logging.debug("Added custom configMap for the executor.")
