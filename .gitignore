@@ -54,6 +54,10 @@ docs/_build/
 # PyBuilder
 target/
 
+# macOS
+.DS_Store
+._.DS_Store
+
 # pyenv
 .python-version
 
