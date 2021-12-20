@@ -13,13 +13,6 @@ INSTALL_DEPS = ['kubernetes==9.0.0',
                 'urllib3==1.24.2',
                 'boto3==1.13.18',
                 ]
-TEST_DEPS = [ 'pytest',
-            'pyfakefs',
-            'pytest-mock'
-            , 'fs',
-            'moto',
-            'pytest-localftpserver'
-            ]
 
 DEV_DEPS = []
 
@@ -33,10 +26,10 @@ setup(
     long_description=LONG_DESC,
     long_description_content_type="text/markdown",
 
-    url='https://github.com/EMBL-EBI-TSI/TESK',
+    url='https://github.com/PlatformedTasks/PLAS-TESK',
 
-    author='Erik van der Bergh',
-    author_email='evdbergh@ebi.ac.uk',
+    author='',
+    author_email='',
 
     license='Apache License 2.0',
 
@@ -78,8 +71,6 @@ setup(
 
     setup_requires=['setuptools_scm'],
 
-    tests_require=TEST_DEPS,
-
     python_requires='>=3.5, <4.0',
 
     # List additional groups of dependencies here (e.g. development
@@ -87,7 +78,6 @@ setup(
     # for example:
     # $ pip install -e .[dev,test]
     extras_require={
-        'dev': DEV_DEPS,
-        'test': TEST_DEPS
+        'dev': DEV_DEPS
     },
 )
