@@ -29,9 +29,7 @@ def helm_install(release_name, chart_name, chart_version, chart_values, task_nam
             chart, 
             f'--namespace={namespace}', 
             '--set',
-            f'transferVolume.pvc={path.TRANSFER_PVC_NAME}',
-            '--set',
-            f'transferVolume.containerBasePath={path.CONTAINER_BASE_PATH}/{task_name}',
+            f'transferVolume.pvc={task_name}-pvc',
             '--wait']
 
         if chart_version:
