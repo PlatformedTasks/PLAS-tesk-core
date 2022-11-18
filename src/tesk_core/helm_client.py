@@ -1,4 +1,5 @@
 import subprocess
+from tesk_core import path
 
 repo_name = "taskmaster-repo"
 
@@ -21,7 +22,15 @@ def helm_install(release_name, chart_name, chart_version, chart_values, namespac
         chart = f"{repo_name}/{chart_name}"
         print(f"Installing '{release_name}' from '{chart}' in namespace '{namespace}'...")
 
-        helm_command = ['helm', 'install', release_name, chart, f'--namespace={namespace}', '--wait']
+        helm_command = [
+            'helm', 
+            'install', 
+            release_name, 
+            chart, 
+            f'--namespace={namespace}', 
+            f'--set transferVolume.pvc={path.TRANSFER_PVC_NAME}',
+            f'--set transferVolume.containerBasePath={path.CONTAINER_BASE_PATH}',
+            '--wait']
 
         if chart_version:
             helm_command.append(f'--version={chart_version}')

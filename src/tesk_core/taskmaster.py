@@ -12,6 +12,7 @@ import time
 
 from kubernetes import config
 
+from tesk_core import path
 from tesk_core.job import Job
 from tesk_core.pvc import PVC
 from tesk_core.filer_class import Filer
@@ -204,6 +205,11 @@ def run_task(data, filer_name, filer_version):
                                                                             {"key": "executor.init", "mode": 438, "path": "executor.init"}]}}])
             print("Added custom configMap for the executor.")
             logging.debug("Added custom configMap for the executor.")
+            
+            mounts.extend([{"name": "transfer-volume", "mountPath": path.CONTAINER_BASE_PATH}])
+            volumes.extend([{"name": "transfer-volume", "persistentVolumeClaim": {'claimName': path.TRANSFER_PVC_NAME}}])
+            print("Added transfer-volume to the executor.")
+            logging.debug("Added transfer-volume to the executor.")
 
             run_executor(executor["job"], args.namespace, pvc)
 
