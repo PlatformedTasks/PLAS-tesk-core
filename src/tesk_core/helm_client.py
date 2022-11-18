@@ -17,7 +17,7 @@ def helm_add_repo(repo_url):
         print(err)
 
 
-def helm_install(release_name, chart_name, chart_version, chart_values, namespace="default"):
+def helm_install(release_name, chart_name, chart_version, chart_values, task_name, namespace="default"):
     try:
         chart = f"{repo_name}/{chart_name}"
         print(f"Installing '{release_name}' from '{chart}' in namespace '{namespace}'...")
@@ -31,7 +31,7 @@ def helm_install(release_name, chart_name, chart_version, chart_values, namespac
             '--set',
             f'transferVolume.pvc={path.TRANSFER_PVC_NAME}',
             '--set',
-            f'transferVolume.containerBasePath={path.CONTAINER_BASE_PATH}',
+            f'transferVolume.containerBasePath={path.CONTAINER_BASE_PATH}/{task_name}',
             '--wait']
 
         if chart_version:

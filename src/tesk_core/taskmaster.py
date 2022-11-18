@@ -193,7 +193,7 @@ def run_task(data, filer_name, filer_version):
         if executor['kind'] == "Job":
             run_executor(executor, args.namespace, pvc)
         elif executor['kind'] == "helm":
-            run_chart(executor, args.namespace, helm_values, pvc)
+            run_chart(executor, args.namespace, helm_values, task_name, pvc)
             # WAIT UNTIL PLATFORM DEPLOYED THEN RUN JOB
             mounts = executor['job']['spec']['template']['spec']['containers'][0].setdefault('volumeMounts', [])
             mounts.extend([{"name": "executor-volume", "mountPath": "/tmp/generated"}])
@@ -206,7 +206,7 @@ def run_task(data, filer_name, filer_version):
             print("Added custom configMap for the executor.")
             logging.debug("Added custom configMap for the executor.")
             
-            mounts.extend([{"name": "transfer-volume", "mountPath": path.CONTAINER_BASE_PATH}])
+            mounts.extend([{"name": "transfer-volume", "mountPath": f"{path.CONTAINER_BASE_PATH}/{task_name}"}])
             volumes.extend([{"name": "transfer-volume", "persistentVolumeClaim": {'claimName': path.TRANSFER_PVC_NAME}}])
             print("Added transfer-volume to the executor.")
             logging.debug("Added transfer-volume to the executor.")
@@ -238,7 +238,7 @@ def run_task(data, filer_name, filer_version):
             pvc.delete()
 
 
-def run_chart(executor, namespace, helm_values, pvc=None):
+def run_chart(executor, namespace, helm_values, task_name, pvc=None):
     release_name = f"{executor['job']['metadata']['labels']['taskmaster-name']}-platform"
     chart_name = executor["chart_name"]
     chart_repo = executor["chart_repo"]
@@ -247,7 +247,7 @@ def run_chart(executor, namespace, helm_values, pvc=None):
     helm_client.helm_add_repo(chart_repo)
 
     installed_platform = helm_client.helm_install(release_name=release_name, chart_name=chart_name,
-                                                  chart_version=chart_version, chart_values=helm_values, namespace=namespace)
+                                                  chart_version=chart_version, chart_values=helm_values, task_name=task_name, namespace=namespace)
 
     if installed_platform and installed_platform.returncode == 0:
         created_platform.append(release_name)
