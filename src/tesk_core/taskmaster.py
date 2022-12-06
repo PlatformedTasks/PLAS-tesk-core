@@ -120,12 +120,10 @@ def generate_mounts(data, pvc):
 
 
 def init_pvc(data, filer):
-    if data['executors'][0]['kind'] == "Job":
-        task_name = data['executors'][0]['metadata']['labels']['taskmaster-name']
-    elif data['executors'][0]['kind'] == "helm":
+    if data['executors'][0]['sidecar']['type'] == "Helm":
         task_name = data['executors'][0]["job"]['metadata']['labels']['taskmaster-name']
     else:
-        exit_cancelled("No task defined.")
+        task_name = data['executors'][0]['metadata']['labels']['taskmaster-name']
 
     pvc_name = task_name + '-pvc'
     pvc_size = data['resources']['disk_gb']
@@ -163,12 +161,11 @@ def init_pvc(data, filer):
 
 
 def run_task(data, filer_name, filer_version):
-    if data['executors'][0]['kind'] == "Job":
-        task_name = data['executors'][0]['metadata']['labels']['taskmaster-name']
-    elif data['executors'][0]['kind'] == "helm":
-        task_name = data['executors'][0]['job']['metadata']['labels']['taskmaster-name']
+
+    if data['executors'][0]['sidecar']['type'] == "Helm":
+        task_name = data['executors'][0]["job"]['metadata']['labels']['taskmaster-name']
     else:
-        exit_cancelled("No task defined.")
+        task_name = data['executors'][0]['metadata']['labels']['taskmaster-name']
 
     pvc = None
 
@@ -190,9 +187,7 @@ def run_task(data, filer_name, filer_version):
                 helm_values.append(input['path'])
 
     for executor in data['executors']:
-        if executor['kind'] == "Job":
-            run_executor(executor, args.namespace, pvc)
-        elif executor['kind'] == "helm":
+        if data['executors'][0]['sidecar']['type'] == "Helm":
             run_chart(executor, args.namespace, helm_values, task_name, pvc)
             # WAIT UNTIL PLATFORM DEPLOYED THEN RUN JOB
             mounts = executor['job']['spec']['template']['spec']['containers'][0].setdefault('volumeMounts', [])
@@ -212,6 +207,8 @@ def run_task(data, filer_name, filer_version):
             logging.debug("Added transfer-volume to the executor.")
 
             run_executor(executor["job"], args.namespace, pvc)
+        else:
+            run_executor(executor, args.namespace, pvc)
 
     # run executors
     logging.debug("Finished running executors")
@@ -240,9 +237,9 @@ def run_task(data, filer_name, filer_version):
 
 def run_chart(executor, namespace, helm_values, task_name, pvc=None):
     release_name = f"{executor['job']['metadata']['labels']['taskmaster-name']}-platform"
-    chart_name = executor["chart_name"]
-    chart_repo = executor["chart_repo"]
-    chart_version = executor["chart_version"]
+    chart_name = executor["sidecar"]["parameters"]["chartname"]
+    chart_repo = executor["sidecar"]["parameters"]["chartrepo"]
+    chart_version = executor["sidecar"]["parameters"]["chartversion"]
 
     helm_client.helm_add_repo(chart_repo)
 
