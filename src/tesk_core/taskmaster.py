@@ -244,7 +244,7 @@ def run_chart(executor, namespace, helm_values, task_name, pvc=None):
     helm_client.helm_add_repo(chart_repo)
 
     installed_platform = helm_client.helm_install(release_name=release_name, chart_name=chart_name,
-                                                  chart_version=chart_version, chart_values=helm_values, task_name=task_name, namespace=namespace)
+                                                  chart_version=chart_version, chart_values=helm_values, task_name=task_name, namespace=namespace, pvc=pvc)
 
     if installed_platform and installed_platform.returncode == 0:
         created_platform.append(release_name)
