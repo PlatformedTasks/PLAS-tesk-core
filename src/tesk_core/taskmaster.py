@@ -193,7 +193,7 @@ def run_task(data, filer_name, filer_version):
             mounts = executor['job']['spec']['template']['spec']['containers'][0].setdefault('volumeMounts', [])
             mounts.extend([{"name": "executor-volume", "mountPath": "/tmp/generated"}])
             volumes = executor['job']['spec']['template']['spec'].setdefault('volumes', [])
-            volumes.extend([{"name": "executor-volume", "configMap": {"name": f"{task_name}-platform-{data['executors'][0]['chart_name']}-cm", 
+            volumes.extend([{"name": "executor-volume", "configMap": {"name": f"{task_name}-platform-{data['executors'][0]['sidecar']['parameters']['chartname']}-cm", 
                                                                         "defaultMode": 420,
                                                                         "items": [
                                                                             {"key": "executor.config", "mode": 438, "path": "executor.config"},
