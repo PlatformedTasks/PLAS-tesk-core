@@ -51,7 +51,7 @@ def helm_install(release_name, chart_name, chart_version, chart_values, task_nam
             for chart_file in chart_values:
                 helm_command.append(f'-f={str(chart_file)}')
         if pvc:
-            helm_command.append(pvc_to_helm())
+            helm_command.append(pvc_to_helm(pvc))
 
         release_install = subprocess.run(helm_command, capture_output=True, text=True, check=True)
         print(release_install.stdout)
