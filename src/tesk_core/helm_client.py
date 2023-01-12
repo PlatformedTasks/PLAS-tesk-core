@@ -22,14 +22,15 @@ def pvc_to_helm(pvc):
 
     for position, volume_mount in enumerate(pvc.volume_mounts):
         for volume_mount_key in volume_mount:
-            helm_set.append(
-                f"--set volumeMounts[{position}].{volume_mount_key}={pvc.volume_mounts[volume_mount_key]}")
+            helm_set.append("--set")
+            helm_set.append(f"volumeMounts[{position}].{volume_mount_key}={volume_mount[volume_mount_key]}")
 
-    helm_set.append(
-        f"--set volumes[0].name={pvc.volume_mounts[0]['name']} --set volumes[0].persistentVolumeClaim.claimName={pvc.spec['metadata']['name']}")
+    helm_set.append("--set")
+    helm_set.append(f"volumes[0].name={pvc.volume_mounts[0]['name']}")
+    helm_set.append("--set")
+    helm_set.append(f"volumes[0].persistentVolumeClaim.claimName={pvc.spec['metadata']['name']}")
 
-    setHelmVolumes = ' '.join(helm_set)
-    return setHelmVolumes
+    return helm_set
 
 
 def helm_install(release_name, chart_name, chart_version, chart_values, task_name, namespace="default", pvc=None):
@@ -51,7 +52,7 @@ def helm_install(release_name, chart_name, chart_version, chart_values, task_nam
             for chart_file in chart_values:
                 helm_command.append(f'-f={str(chart_file)}')
         if pvc:
-            helm_command.append(pvc_to_helm(pvc))
+            helm_command.extend(pvc_to_helm(pvc))
 
         release_install = subprocess.run(helm_command, capture_output=True, text=True, check=True)
         print(release_install.stdout)

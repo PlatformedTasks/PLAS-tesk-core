@@ -120,8 +120,9 @@ def generate_mounts(data, pvc):
 
 
 def init_pvc(data, filer):
-    if data['executors'][0]['sidecar']['type'] == "Helm":
-        task_name = data['executors'][0]["job"]['metadata']['labels']['taskmaster-name']
+    if "sidecar" in data['executors'][0]:
+        if data['executors'][0]['sidecar']['type'] == "Helm":
+            task_name = data['executors'][0]["job"]['metadata']['labels']['taskmaster-name']
     else:
         task_name = data['executors'][0]['metadata']['labels']['taskmaster-name']
 
@@ -161,9 +162,9 @@ def init_pvc(data, filer):
 
 
 def run_task(data, filer_name, filer_version):
-
-    if data['executors'][0]['sidecar']['type'] == "Helm":
-        task_name = data['executors'][0]["job"]['metadata']['labels']['taskmaster-name']
+    if "sidecar" in data['executors'][0]:
+        if data['executors'][0]['sidecar']['type'] == "Helm":
+            task_name = data['executors'][0]["job"]['metadata']['labels']['taskmaster-name']
     else:
         task_name = data['executors'][0]['metadata']['labels']['taskmaster-name']
 
@@ -187,26 +188,37 @@ def run_task(data, filer_name, filer_version):
                 helm_values.append(input['path'])
 
     for executor in data['executors']:
-        if data['executors'][0]['sidecar']['type'] == "Helm":
-            run_chart(executor, args.namespace, helm_values, task_name, pvc)
-            # WAIT UNTIL PLATFORM DEPLOYED THEN RUN JOB
-            mounts = executor['job']['spec']['template']['spec']['containers'][0].setdefault('volumeMounts', [])
-            mounts.extend([{"name": "executor-volume", "mountPath": "/tmp/generated"}])
-            volumes = executor['job']['spec']['template']['spec'].setdefault('volumes', [])
-            volumes.extend([{"name": "executor-volume", "configMap": {"name": f"{task_name}-platform-{data['executors'][0]['sidecar']['parameters']['chartname']}-cm", 
-                                                                        "defaultMode": 420,
-                                                                        "items": [
-                                                                            {"key": "executor.config", "mode": 438, "path": "executor.config"},
-                                                                            {"key": "executor.init", "mode": 438, "path": "executor.init"}]}}])
-            print("Added custom configMap for the executor.")
-            logging.debug("Added custom configMap for the executor.")
-            
-            mounts.extend([{"name": "transfer-volume", "mountPath": f"{path.CONTAINER_BASE_PATH}/{task_name}"}])
-            volumes.extend([{"name": "transfer-volume", "persistentVolumeClaim": {'claimName': path.TRANSFER_PVC_NAME}}])
-            print("Added transfer-volume to the executor.")
-            logging.debug("Added transfer-volume to the executor.")
+        if "sidecar" in data['executors'][0]:
+            if data['executors'][0]['sidecar']['type'] == "Helm":
+                run_chart(executor, args.namespace, helm_values, task_name, pvc)
+                # WAIT UNTIL PLATFORM DEPLOYED THEN RUN JOB
+                mounts = executor['job']['spec']['template']['spec']['containers'][0].setdefault('volumeMounts', [])
+                mounts.extend([{"name": "executor-volume", "mountPath": "/tmp/generated"}])
+                volumes = executor['job']['spec']['template']['spec'].setdefault('volumes', [])
+                volumes.extend([{"name": "executor-volume", 
+                                "configMap": 
+                                {
+                                    "name": 
+                                    f"{task_name}-platform-{data['executors'][0]['sidecar']['parameters']['chartname']}-cm", 
+                                    "defaultMode": 420, "items": 
+                                    [{
+                                        "key": "executor.config", 
+                                        "mode": 438, 
+                                        "path": "executor.config"}, 
+                                    {
+                                        "key": "executor.init", 
+                                        "mode": 438, 
+                                        "path": "executor.init"}]
+                                }}])
+                print("Added custom configMap for the executor.")
+                logging.debug("Added custom configMap for the executor.")
+                
+                mounts.extend([{"name": "transfer-volume", "mountPath": f"{path.CONTAINER_BASE_PATH}/{task_name}"}])
+                volumes.extend([{"name": "transfer-volume", "persistentVolumeClaim": {'claimName': path.TRANSFER_PVC_NAME}}])
+                print("Added transfer-volume to the executor.")
+                logging.debug("Added transfer-volume to the executor.")
 
-            run_executor(executor["job"], args.namespace, pvc)
+                run_executor(executor["job"], args.namespace, pvc)
         else:
             run_executor(executor, args.namespace, pvc)
 
